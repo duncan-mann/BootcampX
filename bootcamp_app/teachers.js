@@ -10,18 +10,19 @@ const pool = new Pool({
 let args = process.argv.slice(2);
 let cohortName = args[0];
 
+const query = {
+    text: `SELECT DISTINCT teachers.name as teacher, 
+    cohorts.name as cohort
+    FROM teachers 
+    JOIN assistance_requests ON teacher_id = teachers.id
+    JOIN students ON assistance_requests.student_id = students.id
+    JOIN cohorts ON students.cohort_id = cohorts.id
+    WHERE cohorts.name = $1
+    ORDER BY teacher;`,
+    values : [`${cohortName}`]
+}
 
-pool.query(`
-SELECT DISTINCT teachers.name as teacher, 
-cohorts.name as cohort
-FROM teachers 
-JOIN assistance_requests ON teacher_id = teachers.id
-JOIN students ON assistance_requests.student_id = students.id
-JOIN cohorts ON students.cohort_id = cohorts.id
-WHERE cohorts.name = '${cohortName}'
-ORDER BY teacher;
-`)
-.then(res => {
-  console.log(res.rows);
-})
-.catch(err => console.error('query error', err.stack));
+pool
+  .query(query)
+  .then(res => console.log(res.rows))
+  .catch(e => console.error(e.stack))

@@ -11,14 +11,16 @@ let args = process.argv.slice(2);
 let month = args[0];
 let maxResults = args[1];
 
-pool.query(`
-SELECT students.id, students.name, cohorts.name
-FROM students
-JOIN cohorts ON cohorts.id = students.cohort_id
-WHERE cohorts.name LIKE '%${month}%'
-LIMIT ${maxResults};
-`)
-.then(res => {
-  console.log(res.rows);
-})
-.catch(err => console.error('query error', err.stack));
+const query = { 
+    text: `SELECT students.id, students.name, cohorts.name
+    FROM students
+    JOIN cohorts ON cohorts.id = students.cohort_id
+    WHERE cohorts.name LIKE $1
+    LIMIT $2;`,
+    values : [`%${month}%`, `${maxResults}`]
+}
+
+pool
+  .query(query)
+  .then(res => console.log(res.rows))
+  .catch(e => console.error(e.stack))
